@@ -98,3 +98,52 @@ There isn’t one single tool that solves everything. That’s why the world of 
 
 Expect to learn multiple tools across domains like communication, discovery, configuration, and observability. The series will introduce each one as it becomes relevant during development.
 
+# 📽️ Microservices vs Service Oriented Architecture (SOA) 
+
+## 🔍 Overview  
+The video explores the nuanced differences between Microservices and Service-Oriented Architecture (SOA), debunking the myth that microservices are simply "SOA done right."
+
+---
+
+## 🧱 Architectural Comparison  
+
+### 👨‍🔧 Service-Oriented Architecture (SOA)  
+- Focuses on **reusability** of services across the organization  
+- Often uses **Enterprise Service Bus (ESB)** for communication  
+- Emphasizes **shared infrastructure** and centralized governance  
+- Can grow into **monolithic integration points** due to ESB bottlenecks  
+
+### 🧩 Microservices  
+- Prioritizes **independent deployment and scalability**  
+- Leverages **lightweight communication**, usually via REST APIs  
+- Promotes **domain-driven design (DDD)** — each microservice owns a specific business capability  
+- Encourages **polyglot persistence & tech stacks**, allowing teams freedom  
+
+---
+
+## 🚧 Common Misunderstanding  
+> "Microservices are just small SOA services" — not true.  
+The **intent**, **design philosophy**, and **communication patterns** are fundamentally different.
+
+---
+
+## 🗂️ Key Design Principles of Microservices  
+- **Bounded Context:** Each service should encapsulate a specific domain  
+- **Loose Coupling:** Services should interact through well-defined APIs without tight dependencies  
+- **High Cohesion:** Functionality within a service should be tightly related  
+- **Decentralized Governance:** Teams can choose tools, languages, and databases independently  
+
+---
+
+## ✅ Best Practices Highlighted  
+- Avoid central ESBs; instead, favor **smart endpoints and dumb pipes**  
+- Design around business capabilities, not technical layers  
+- Maintain **independence** in deployment and scaling — critical for agility  
+- Enable teams to **own their services end-to-end**, including infrastructure, CI/CD, and monitoring  
+
+---
+
+## 🧠 TL;DR  
+Microservices diverge from SOA by embracing independence, decentralized design, and agility. Rather than simply repackaging SOA into smaller parts, microservices rethink the architecture to align with modern deployment models and organizational autonomy.
+
+---
