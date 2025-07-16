@@ -250,4 +250,73 @@ These projects represent core logical modules but are **not microservices yet** 
 - Enable communication between them  
 - Begin gradual transformation into actual microservices architecture
 
+
+
+> # 🎯 Using RestTemplate to Call an External Microservice API  
+
+
+## 📌 Session Focus  
+Demonstrate how a Spring Boot service can synchronously call other microservices using Spring’s `RestTemplate`. Key takeaways:
+
+- Instantiate and inject a `RestTemplate` bean  
+- Call external REST endpoints with `getForObject` and `getForEntity`  
+- Map JSON responses directly into Java POJOs  
+- Handle errors and inspect full HTTP response when needed  
+
+---
+
+## 📦 Core Components & Code Snippet  
+
+### 🔧 RestTemplate Configuration  
+```java
+@Bean
+public RestTemplate restTemplate() {
+    return new RestTemplate();
+}
+```
+Inject this bean into your controller or service.
+
+### 📝 Sample Controller  
+```java
+@RestController
+@RequestMapping("/catalog")
+public class MovieCatalogResource {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @GetMapping("/{userId}")
+    public List<CatalogItem> getCatalog(@PathVariable("userId") String userId){
+        // 1. Get hardcoded Ratings Data
+        List<Rating> ratings = Arrays.asList(
+                new Rating("123", 4),
+                new Rating("456", 5)
+        );
+
+        // 2. Enrich each rating by fetching movie info
+        return ratings.stream()
+                .map(r -> {
+                    Movie movie = restTemplate.getForObject(
+                            "http://localhost:8082/movies/" + r.getMovieId(),
+                            Movie.class
+                    );
+                    return new CatalogItem(movie.getName(), movie.getDescription(), r.getRating());
+                })
+                .collect(Collectors.toList());
+    }
+}
+```
+
+---
+
+## 🧠 Key Methods  
+
+- `getForObject(String url, Class<T> responseType)`  
+  Returns only the response body as the specified type.  
+
+- `getForEntity(String url, Class<T> responseType)`  
+  Returns `ResponseEntity<T>` with status, headers, and body.  
+
+- Other HTTP helpers: `postForObject`, `put`, `delete`, etc.
+
 ---

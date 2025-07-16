@@ -1,4 +1,4 @@
-package io.javabrains.movie_info_service;
+package io.javabrains.movie_catalog_service;
 
 
 public class Movie {
