@@ -147,3 +147,38 @@ The **intent**, **design philosophy**, and **communication patterns** are fundam
 Microservices diverge from SOA by embracing independence, decentralized design, and agility. Rather than simply repackaging SOA into smaller parts, microservices rethink the architecture to align with modern deployment models and organizational autonomy.
 
 ---
+
+# 🎬 Episode 04 — Overview of the Microservices App
+
+## 📌 Context
+This video offers a **quick overview** of the application we'll build during the workshop. The focus is on its **microservices structure** and the kind of interaction expected between components.
+
+---
+
+## 🧩 Application Structure
+The system simulates a movie catalog app and consists of **three microservices**:
+
+### 1. 📄 Movie Info Service
+- Provides information about movies: title, description, etc.
+
+### 2. ⭐ Movie Ratings Service
+- Stores ratings provided by individual users.
+
+### 3. 📚 Movie Catalog Service
+- Queries both the Info and Ratings services.
+- Combines data to present a unified response per movie and user.
+
+---
+
+## 🔗 Service Interaction
+- Services communicate via **REST calls**.
+- Each service is separate and independently deployable.
+
+---
+
+## 🚀 Microservice Principles Introduced
+- **Single Responsibility**: Each service handles one concern.
+- **Independent Deployment**: Services are built and managed separately.
+- **Data Aggregation**: Catalog service stitches together info and ratings.
+
+---
