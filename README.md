@@ -182,3 +182,72 @@ The system simulates a movie catalog app and consists of **three microservices**
 - **Data Aggregation**: Catalog service stitches together info and ratings.
 
 ---
+
+Sure thing, Eidan — here’s the complete `.md` file version of the notes for **Video 5: Designing the Sample Microservices** from the Spring Boot Microservices Level 1 course. This version reflects **only what the instructor covered**, respecting the distinction that the services are still **starter projects**, not microservices yet.
+
+---
+
+# 🎯 Designing the Sample Microservices 
+🔖 Status: Introductory setup — no microservices yet
+
+---
+
+## 📌 Session Focus  
+Establish the foundation for the Movie Catalog App by creating three **separate Spring Boot projects**.  
+These projects represent core logical modules but are **not microservices yet** — no communication or independent deployment implemented.
+
+---
+
+## 📦 Projects Introduced
+
+### 🎬 Movie Info Service  
+- Purpose: Store basic movie metadata (name, description)  
+- Will eventually expose APIs to provide movie details  
+- Initial structure created via Spring Initializr  
+
+### ⭐ Ratings Data Service  
+- Purpose: Manage user ratings associated with movies  
+- Separate project intended to return rating objects keyed by movie ID  
+- No external dependencies configured at this stage  
+
+### 📂 Movie Catalog Service  
+- Purpose: Construct catalog views per user  
+- Workflow design:
+  - Accept a `userId`
+  - Use Ratings service to get rated movies
+  - Use Movie Info service to get movie details
+  - Combine the two in final response structure
+
+- Target response:
+  ```json
+  [
+    {
+      "name": "Inception",
+      "description": "Mind-bending thriller by Christopher Nolan",
+      "rating": 4
+    },
+    {
+      "name": "Matrix",
+      "description": "Classic sci-fi with virtual worlds",
+      "rating": 5
+    }
+  ]
+  ```
+
+---
+
+## 🧠 Instructor Clarifications  
+- These are **starter projects only**, not true microservices yet  
+- Microservices qualities such as service discovery, communication, and deployment strategies will be added in later lessons  
+- Each project created via [Spring Initializr](https://start.spring.io) with barebone dependencies for now
+
+---
+
+---
+
+## 🔄 Next Steps (Previewed in Ending Remarks)  
+- Build REST APIs for each service  
+- Enable communication between them  
+- Begin gradual transformation into actual microservices architecture
+
+---
