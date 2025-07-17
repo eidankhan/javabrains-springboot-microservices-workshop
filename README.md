@@ -541,3 +541,78 @@ Cons
 - Use client libraries (Spring Cloud Netflix, Spring Cloud Gateway) to abstract discovery logic.
 - Combine discovery with resilience patterns: timeouts, retries, circuit breakers (Hystrix, Resilience4j).
 
+
+### Why Hardcoded URLs are bad?
+- Changes require code updates
+- Dynamic URLs in the cloud -> When we deploy microservices on cloud for example Heroku, then we don't have any idea
+  what would be the API URLs
+- Load Balancing
+- Multiple environments -> In real-world applications, it's common to deploy across multiple environments
+  (e.g., development, staging, production). Hardcoding URLs makes it difficult to handle different
+  environments for several reasons
+
+So, because of all these drawbacks, we have `Service Discovery (A Pattern)` which helps microservices discover and talk to each other
+
+### Service Discovery in Spring Cloud
+
+![Alt text](images/service-discovery-daigram.png)
+
+Service discovery in Spring Cloud plays a crucial role in systems following a microservices architecture, as shown in the diagram. Here’s how it works:
+
+- **Discovery Server (Registry)** : At the heart of service discovery is a discovery server, like **Eureka** (a widely-used component in Spring Cloud). This server acts as a registry where all the microservices register themselves. It's like a phonebook for services.
+
+- **Service Registration** : Each microservice (such as **SRV 1**, **SRV 2**, and **SRV 3** in the diagram) registers its details (like hostname, port, etc.) with the discovery server. This allows other services to locate it dynamically rather than relying on hardcoded configurations.
+
+- **Client-Side Service Discovery** : When the client (in this case, the **CLIENT** box in the diagram) needs to communicate with a specific service, it queries the discovery server to get the relevant information. This ensures flexibility and scalability, as services can be added or removed without affecting the client directly.
+
+- **Load Balancing** : If multiple instances of a service exist (e.g., several instances of **SRV 1**), the discovery server can provide the client with all available instances. Tools like **Ribbon** (Spring Cloud Load Balancer) help to distribute requests across these instances efficiently.
+
+- **Dynamic Updates** : The registry is updated dynamically, so if a service goes down or is brought up, the discovery server maintains an accurate and current list of available services.
+
+Now, what happens in the above diagram for `Client Side Service Discovery`, each of those `services` which want to be discovered by the `Client`, register themselves with that `Discovery Server`.
+In other words, `Service Discovery` is like a phone book guy which is maintaining a `Phone Book` and all these people are kind of
+providing the entries into the phone book. Whoever needs to make a call looks up the phone book and gets the address
+
+> Remember : Spring Cloud uses the Client Side Service Discovery
+
+> # 📘 Eureka Service Discovery
+
+## 🎯 What Is Eureka Server?
+
+> Think of Eureka Server as the “address book” for microservices in Spring Cloud applications.
+
+In a cloud-native app like an online food delivery platform, you might have:
+
+- 🧾 **Order Service**: Places and tracks orders
+- 🍽️ **Restaurant Service**: Manages menus and availability
+- 🚚 **Delivery Service**: Coordinates delivery agents
+
+Each service runs independently, but they need to **find and talk to each other dynamically**. That’s where Eureka Server comes in — instead of hardcoding IPs or URLs (which can change), services use Eureka for registration and discovery.
+
+## 🔄 How It Works (User Insight)
+
+- **Service Registration**  
+  Each microservice registers itself with Eureka Server upon startup (hostnames, ports, metadata).
+
+- **Service Discovery**  
+  When one service wants to communicate with another, it asks Eureka for the current address — avoiding brittle, hardcoded paths.
+
+### 🧩 Why Use Eureka?
+
+- Microservices in cloud environments scale up/down unpredictably.
+- Their network locations (host:port) often change.
+- Hardcoding service addresses breaks dynamic scaling.
+- Eureka maintains a **live registry** and allows **runtime service lookups**.
+
+### 🏗 Origins & Purpose
+
+- Eureka was built by **Netflix** to support its massive microservice architecture.
+- Provides:
+    - Dynamic discovery
+    - Heartbeat checks
+    - Resilience features like **self-preservation mode**
+
+### ☕ Spring Boot Integration 
+- Spring Cloud offers out-of-the-box support via annotations and auto-config.
+- Developers can turn a plain Spring Boot app into a Eureka registry with minimal effort.
+- The current video does **not** show code — it sets the stage conceptually.
