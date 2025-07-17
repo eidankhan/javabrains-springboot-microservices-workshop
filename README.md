@@ -461,3 +461,83 @@ Return a structured object:
 - Consider industry schemas (JSON:API, HAL) if you need hypermedia support
 - Document your `meta` and `links` fields clearly in your API spec
 
+> # Understanding Service Discovery (Spring Boot Microservices Level 1)
+Service discovery lets microservices dynamically locate and communicate with each other without hard-coding endpoints. Instead of binding clients to fixed hostnames and ports, we introduce a registry that maintains live instances. This video contrasts the common “what are we doing wrong here” pitfall (tight coupling via hard-coded URLs) with client-side and server-side discovery approaches.
+
+## What Are We Doing Wrong Here?
+
+In our Movie Catalog service we called Movie Info like this:
+
+```java
+String url = "http://localhost:8081/movie-info/" + movieId;
+MovieInfo info = restTemplate.getForObject(url, MovieInfo.class);
+```
+
+- Hard-codes host and port
+- Couples client code to a specific instance
+- Fails when you scale instances or change ports
+- Requires manual updates on every deployment
+
+That fragility and maintenance burden is exactly why we need service discovery—to decouple logical service names from physical locations.
+
+
+## Two Service Discovery Approaches
+
+### 1. Client-Side Discovery
+
+Clients query a registry directly, pick an instance, then call it:
+
+1. **Service Registration**  
+   Each service registers under a logical name (e.g. “movie-info-service”) on startup.
+2. **Lookup & Invocation**
+   ```java
+   @Autowired
+   private DiscoveryClient discoveryClient;
+
+   List<ServiceInstance> instances = discoveryClient.getInstances("movie-info-service");
+   ServiceInstance instance = instances.get( new Random().nextInt(instances.size()) );
+   String baseUrl = instance.getUri().toString();
+   MovieInfo info = restTemplate.getForObject(baseUrl + "/movie-info/" + movieId, MovieInfo.class);
+   ```
+3. **Load Balancing**  
+   Client-side logic (round-robin, random) picks which instance to call.
+
+Pros
+- No extra network hop
+- Full control over load-balancing strategy
+
+Cons
+- All clients must embed discovery logic
+- Registry API becomes a direct dependency
+
+---
+
+### 2. Server-Side Discovery
+
+A dedicated router or proxy handles discovery for clients:
+
+1. **Registration**  
+   Services still register with a discovery server.
+2. **Client Call**  
+   Clients issue normal HTTP requests to a gateway (e.g. `http://gateway/movie-info/{id}`).
+3. **Routing & Load-Balancing**  
+   The gateway queries the registry, selects an instance, and forwards the request.
+
+Pros
+- Clients remain simple HTTP callers
+- Centralized routing, easier to secure and monitor
+
+Cons
+- Adds an extra network hop
+- Gateway itself needs to be highly available
+
+---
+
+## Key Takeaways & Best Practices
+
+- Never hard-code hostnames or ports in client code.
+- Register and deregister services automatically (on startup/shutdown).
+- Leverage health checks so only healthy instances appear in the registry.
+- Use client libraries (Spring Cloud Netflix, Spring Cloud Gateway) to abstract discovery logic.
+- Combine discovery with resilience patterns: timeouts, retries, circuit breakers (Hystrix, Resilience4j).
+
