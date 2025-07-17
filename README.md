@@ -679,3 +679,106 @@ eureka.client.fetch-registry=false
 > “Think of Eureka Server as the **receptionist** in a company.  
 > Visitors (microservices) come in and write their details in the visitor log.  
 > Other visitors can ask the receptionist for someone’s location — and get directed.”
+
+># 🎥 Creating Eureka Clients
+Convert three standalone microservices into Eureka-aware clients in just a few steps. After adding a single dependency and minimal configuration, each service will auto-register with your running Eureka Server and appear in the dashboard.
+
+## 🔧 Prerequisite
+- A Eureka Server up and running at `http://localhost:8761` (see Video #19).
+
+## 🚀 Step-by-Step Guide
+
+### 1. Add the Eureka Client Dependency
+
+In each microservice’s `pom.xml`, include:
+
+```xml
+<dependency>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+
+<dependencyManagement>
+<dependencies>
+  <dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-dependencies</artifactId>
+    <version>${spring-cloud.version}</version>
+    <type>pom</type>
+    <scope>import</scope>
+  </dependency>
+</dependencies>
+</dependencyManagement>
+
+<!-- Add this in properties tag just under java version property-->
+<spring-cloud.version>Greenwich.RELEASE</spring-cloud.version>
+```
+
+This brings in the client-side service-registration and discovery hooks.
+
+
+
+### 2. Enable Eureka Client
+
+In your main application class, add:
+
+```java
+@SpringBootApplication
+@EnableEurekaClient
+public class MovieInfoServiceApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(MovieInfoServiceApplication.class, args);
+  }
+}
+```
+
+- `@EnableEurekaClient` activates Eureka registration.
+- Note: With the starter on the classpath, Spring Boot can also auto-detect client behavior even without this annotation.
+
+### 3. Configure Each Service
+
+Create or update `application.yml` (or `.properties`) in each microservice:
+
+```yaml
+spring:
+  application:
+    name: movie-info-service   # Unique service ID
+
+server:
+  port: 8081                  # Change per service (e.g., 8082, 8083 for others)
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+```
+
+- `spring.application.name` is the identifier shown in Eureka.
+- Point `defaultZone` to your Eureka Server’s `/eureka` endpoint.
+
+---
+
+### 4. Start & Verify Registration
+
+1. Launch your Eureka Server (if not already running).
+2. Start each microservice (`mvn spring-boot:run` or via IDE).
+3. Open `http://localhost:8761` in your browser.
+
+You should now see entries for:
+- `MOVIE-INFO-SERVICE`
+- `MOVIE-CATALOG-SERVICE`
+- `RATING-DATA-SERVICE`
+
+Each listed with its instance ID, status (UP), and port.
+
+## 💡 Key Takeaways & Tips
+
+- Ensure **unique service names** to avoid collisions in the registry.
+- Verify ports before startup—Eureka won’t register two instances on the same port.
+- You can omit `@EnableEurekaClient` if you prefer convention-over-configuration; the starter will pick it up.
+- For production, secure your Eureka endpoints and consider timeouts/retry settings under `eureka.instance` and `eureka.client`.
+
+
+```  
+All set! Your microservices are now Eureka clients, ready for dynamic discovery and resilient inter-service communication.  
+```
