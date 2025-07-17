@@ -26,13 +26,14 @@ public class MovieCatalogResource {
     @GetMapping("/{userId}")
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId){
         // 1. Get hardcoded Ratings Data
-        List<Rating> ratings = Arrays.asList(
-                new Rating("123", 4),
-                new Rating("456", 5)
-        );
+        UserRating userRating = restTemplate.getForObject(
+                            "http://localhost:8083/ratings-data/users/" + userId,
+                            UserRating.class
+                    );
 
         // 2. Enrich each rating by fetching movie info
-        return ratings.stream()
+        assert userRating != null;
+        return userRating.getRatings().stream()
                 .map(r -> {
 //                    Movie movie = restTemplate.getForObject(
 //                            "http://localhost:8082/movies/" + r.getMovieId(),

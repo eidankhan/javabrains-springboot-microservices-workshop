@@ -339,6 +339,7 @@ This video transitions API communication from `RestTemplate` to the newer, more 
 - Ideal for high-throughput microservices communicating with other services.
 
 ---
+`In WebFlux, when making an API call like webClient.get().retrieve().bodyToMono(Movie.class), it returns a Mono<Movie>, meaning the movie data will be available asynchronously when subscribed to and can be used later once available.`
 
 ## ⚙️ Setup & Usage
 
@@ -392,4 +393,71 @@ Movie movie = webClientBuilder.build()
 - Reduces resource footprint under load — great for scalable services.
 
 ---
+
+
+> # Why You Should Avoid Returning Lists in APIs
+
+A quick dive into why wrapping JSON arrays in a top-level object leads to more robust, extensible, and client-friendly APIs.
+
+## Mini Summary
+
+When you expose a raw JSON array as the top-level response, you lose flexibility to add metadata, versioning info, error details or HATEOAS links later. Wrapping the array in an object preserves room for growth and better client/server contracts.
+
+
+## 1. The Problem with Top-Level Arrays
+
+- No place for pagination or total-count metadata  
+- Hard to evolve your API without breaking existing clients  
+- Error responses must use the same structure—leaving arrays makes this awkward  
+- Some frameworks (Swagger/OpenAPI, code generators) expect a JSON object at the root
+
+
+## 2. Impact on Clients and Tooling
+
+- Client code generators can’t attach new fields  
+- Inconsistent parsing rules across libraries (e.g., Jackson vs. Gson)  
+- Swagger UI displays arrays differently—limits documentation clarity  
+- Harder to inject HATEOAS links or custom headers in the payload  
+
+
+## 3. The Wrapper Pattern
+
+Instead of returning:
+```json
+[
+  { "id": 1, "title": "Movie A" },
+  { "id": 2, "title": "Movie B" }
+]
+```
+
+Return a structured object:
+```json
+{
+  "data": [
+    { "id": 1, "title": "Movie A" },
+    { "id": 2, "title": "Movie B" }
+  ],
+  "meta": {
+    "totalItems": 2,
+    "page": 1,
+    "pageSize": 25
+  },
+  "links": {
+    "self": "/movies?page=1",
+    "next": "/movies?page=2"
+  }
+}
+```
+
+## 4. Real-World Benefits
+- **Extensibility**: Add new fields (e.g., warnings, debug info) without client-side breaks
+- **Consistency**: Same wrapper for success and error responses
+- **Metadata**: Easily include paging, sorting, or custom metrics
+- **HATEOAS friendly**: Central place to inject links for client navigation
+
+## 5. Best Practices & Tips
+- Always use proper HTTP status codes (200, 4xx, 5xx) alongside your JSON wrapper
+- Standardize your wrapper across all endpoints for predictability
+- Consider industry schemas (JSON:API, HAL) if you need hypermedia support
+- Document your `meta` and `links` fields clearly in your API spec
 
