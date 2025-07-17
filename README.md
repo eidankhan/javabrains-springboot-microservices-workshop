@@ -616,3 +616,66 @@ Each service runs independently, but they need to **find and talk to each other 
 - Spring Cloud offers out-of-the-box support via annotations and auto-config.
 - Developers can turn a plain Spring Boot app into a Eureka registry with minimal effort.
 - The current video does **not** show code — it sets the stage conceptually.
+
+> # 🚀 Starting a Eureka Server
+
+This video walks you through creating a **Eureka Server** using Spring Boot. You’ll build a discovery service, enable Eureka, configure essential settings, and verify the dashboard — all within scope.
+
+## 📦 Step-by-Step Guide
+
+### 1️⃣ Create a New Spring Boot Project
+
+- Use [Spring Initializr](https://start.spring.io)
+- Add the following **dependency**:  
+  `spring-cloud-starter-netflix-eureka-server`
+- Set the project name as `discovery-server`
+
+---
+
+### 2️⃣ Enable Eureka Server
+
+In your main class:
+
+```java
+@SpringBootApplication
+@EnableEurekaServer
+public class DiscoveryServiceApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(DiscoveryServiceApplication.class, args);
+    }
+}
+```
+
+🧠 The annotation `@EnableEurekaServer` activates Eureka's registry logic — no controllers or REST endpoints needed.
+
+---
+
+### 3️⃣ Understand Default Behavior
+
+> ⚠️ **Important note:** Every Eureka Server is also treated as a Eureka Client by default.
+
+That means it will try to **register itself** to another registry — or to its own dashboard if no other registry exists.
+
+---
+
+### 4️⃣ Configure `application.properties` to Avoid Self-Registration
+
+```properties
+# Tell Eureka Server to stop acting like a client (Eureka)
+eureka.client.register-with-eureka=false
+eureka.client.fetch-registry=false
+```
+
+🔍 Explanation:
+- `register-with-eureka: false` tells the server **not to register itself** as a client.
+- `fetch-registry: false` prevents it from looking for other Eureka servers (discovery is disabled).
+
+### 5️⃣ Launch and Verify
+- Run the app locally (via IDE or terminal).
+- Open: [`http://localhost:8761`](http://localhost:8761)
+- You’ll see the **Eureka dashboard** — no services registered yet, which is expected.
+
+
+> “Think of Eureka Server as the **receptionist** in a company.  
+> Visitors (microservices) come in and write their details in the visitor log.  
+> Other visitors can ask the receptionist for someone’s location — and get directed.”
