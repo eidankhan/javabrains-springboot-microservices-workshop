@@ -320,3 +320,76 @@ public class MovieCatalogResource {
 - Other HTTP helpers: `postForObject`, `put`, `delete`, etc.
 
 ---
+
+Sure thing, Eidan! Based on the video "[Using WebClient to make API calls](https://www.youtube.com/watch?v=F3uJyeAyv5g&list=PLqq-6Pq4lTTZSKAFG6aCDVDP86Qx4lNas&index=13)" from the Spring Boot Microservices Level 1 series by Java Brains, here's a human-friendly technical summary in markdown format — ideal for your workshop notes or GitHub documentation:
+
+---
+
+
+> # 🧵 WebClient in Spring Boot Microservices
+
+## 🎯 Overview
+This video transitions API communication from `RestTemplate` to the newer, more powerful `WebClient`. WebClient is part of Spring WebFlux and supports **reactive programming** — a non-blocking, event-driven model that handles concurrency more efficiently.
+
+---
+
+## 🧪 Why Switch to WebClient?
+- `RestTemplate` is blocking and synchronous.
+- `WebClient` offers asynchronous, non-blocking HTTP calls.
+- Ideal for high-throughput microservices communicating with other services.
+
+---
+
+## ⚙️ Setup & Usage
+
+```java
+// Create WebClient bean using builder
+@Bean
+public WebClient.Builder getWebClientBuilder() {
+    return WebClient.builder();
+}
+```
+
+```java
+// Inject and use WebClient
+@Autowired
+private WebClient.Builder webClientBuilder;
+
+Movie movie = webClientBuilder.build()
+    .get()
+    .uri("http://localhost:8082/movies/" + movieId)
+    .retrieve()
+    .bodyToMono(Movie.class)     // Reactive wrapper
+    .block();                    // Optional: forces synchronous behavior
+```
+
+### Key Points
+- `.retrieve()` starts the request.
+- `.bodyToMono(Class)` expects a single object.
+- `.block()` converts the call to synchronous — useful for hybrid legacy integration but not recommended for full-reactive apps.
+
+---
+
+## 🧠 Reactive Terminology
+- `Mono<T>` → Represents a single async response.
+- `Flux<T>` → Represents a stream of async responses.
+- Non-blocking means threads aren't held up while waiting for a response.
+---
+
+## 🔁 Comparison with RestTemplate
+| Feature        | RestTemplate   | WebClient         |
+|----------------|----------------|-------------------|
+| Blocking       | ✅ Yes          | ❌ No              |
+| Reactive       | ❌ No           | ✅ Yes             |
+| Future-Proof   | ❌ Legacy       | ✅ Preferred       |
+| Thread Usage   | High            | Low (efficient)   |
+
+---
+
+## 🧳 Real-World Use Cases
+- Ideal for microservice-to-microservice communication.
+- Works well with reactive databases (R2DBC) and data streams.
+- Reduces resource footprint under load — great for scalable services.
+
+---
+
