@@ -782,3 +782,32 @@ Each listed with its instance ID, status (UP), and port.
 ```  
 All set! Your microservices are now Eureka clients, ready for dynamic discovery and resilient inter-service communication.  
 ```
+
+># Why Add `@LoadBalanced`
+
+When you annotate your RestTemplate or WebClient.Builder bean with `@LoadBalanced`, Spring injects a special filter/interceptor that:
+
+- Hooks into your discovery client (Eureka, Consul, etc.)  
+- Resolves URIs of the form `http://{serviceId}/…` into actual host:port pairs  
+- Applies client-side load balancing (round-robin by default) across all healthy instances  
+
+In essence, `@LoadBalanced` turns a vanilla HTTP client into a smart, service-aware one. Calls like:
+```java
+restTemplate.getForObject("http://user-service/users/123", User.class);
+```
+no longer fail on unresolvable hostnames—they dynamically pick one of the registered `user-service` instances via the load balancer.
+
+### Under the Hood
+
+- For RestTemplate, Spring replaces the default `ClientHttpRequestFactory` with one backed by a `LoadBalancerClient`
+- For WebClient, it registers a `ReactorLoadBalancerExchangeFilterFunction` filter behind the scenes
+- Both leverage a `ServiceInstanceListSupplier` to fetch up-to-date instance lists and perform round-robin or custom load-balancing strategies
+
+### Benefits
+
+- No hard-coded URLs or ports—just logical service IDs
+- Automatic fail-over when instances go down or auto-scale
+- Seamless integration with resilience tools (Resilience4J, retries, timeouts)
+
+**Key Takeaway:**  
+Use `@LoadBalanced` whenever you want your HTTP client to be discovery-driven and distribute load across multiple service instances automatically.

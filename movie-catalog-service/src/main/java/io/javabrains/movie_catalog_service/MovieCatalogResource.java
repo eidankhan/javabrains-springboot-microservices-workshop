@@ -27,7 +27,7 @@ public class MovieCatalogResource {
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId){
         // 1. Get hardcoded Ratings Data
         UserRating userRating = restTemplate.getForObject(
-                            "http://localhost:8083/ratings-data/users/" + userId,
+                            "http://MOVIE-RATING-SERVICE/ratings-data/users/" + userId,
                             UserRating.class
                     );
 
@@ -42,7 +42,7 @@ public class MovieCatalogResource {
 
                     Movie movie = webClientBuilder.build()
                             .get()
-                            .uri("http://localhost:8082/movies/" + r.getMovieId())
+                            .uri("http://MOVIE-INFO-SERVICE/movies/" + r.getMovieId())
                             .retrieve()
                             .bodyToMono(Movie.class)     // Reactive wrapper
                             .block();
