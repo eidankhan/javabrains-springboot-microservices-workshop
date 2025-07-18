@@ -811,3 +811,49 @@ no longer fail on unresolvable hostnames—they dynamically pick one of the regi
 
 **Key Takeaway:**  
 Use `@LoadBalanced` whenever you want your HTTP client to be discovery-driven and distribute load across multiple service instances automatically.
+
+> # Spring Boot Microservices Level 2: Fault Tolerance and Resilience
+
+This introductory lecture lays out the roadmap and key prerequisites for diving into fault tolerance and resilience in Spring Boot microservices. You’ll learn which resilience patterns we’ll cover—from simple timeouts to advanced circuit breakers and bulkheads—and ensure you have the foundational Spring Cloud skills needed to continue.
+
+## Prerequisites
+
+- Java 8 or higher
+- Spring Boot fundamentals (controllers, dependency injection, application properties)
+- Completion of **Level 1: Communication and Discovery**
+  - Service registration/discovery with Eureka
+  - Client-side load balancing with Ribbon
+  - Declarative REST clients with Feign
+- Maven or Gradle build experience
+
+## Course Agenda
+
+1. Fault Tolerance vs Resilience
+2. Recap of Level 1 (Communication & Discovery)
+3. Calling an External API
+4. Handling Downed Microservices
+5. Dealing with Slow Microservices
+6. The Problem with Threads in Blocking I/O
+7. A Possible Solution for Slow Services
+8. Adding Timeouts to `RestTemplate`
+9. Why Timeouts Alone Aren’t Enough
+10. Understanding the Circuit Breaker Pattern
+11. Key Circuit Breaker Parameters
+12. Designing Fallback Strategies
+13. Benefits of Circuit Breakers (Plus Q&A)
+14. Introduction to Hystrix
+15. Integrating Hystrix into a Spring Boot App
+16. Hystrix Internals: How It Works
+17. Limitations of the Hystrix Proxy Approach
+18. Refactoring for Granular Fallbacks
+19. Tuning Hystrix Configuration Parameters
+20. Monitoring with the Hystrix Dashboard
+21. Implementing the Bulkhead Pattern
+22. Course Summary and Next Steps
+
+## Key Takeaways
+
+- This level zeroes in on **making your microservices robust** under failure scenarios.
+- Resilience isn’t just retries and timeouts—it’s about **design patterns** that isolate, degrade, and recover.
+- You need a solid grasp of **Spring Cloud Netflix** (Eureka, Ribbon, Feign) before adding Hystrix and bulkheads.
+- Each pattern builds on the last: timeouts ➔ circuit breakers ➔ bulkheads ➔ monitoring.
