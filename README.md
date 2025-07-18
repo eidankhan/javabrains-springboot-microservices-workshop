@@ -857,3 +857,44 @@ This introductory lecture lays out the roadmap and key prerequisites for diving 
 - Resilience isn’t just retries and timeouts—it’s about **design patterns** that isolate, degrade, and recover.
 - You need a solid grasp of **Spring Cloud Netflix** (Eureka, Ribbon, Feign) before adding Hystrix and bulkheads.
 - Each pattern builds on the last: timeouts ➔ circuit breakers ➔ bulkheads ➔ monitoring.
+
+> # Fault Tolerance vs Resilience
+
+This video unpacks the difference between fault tolerance and resilience in microservices. You’ll learn why resilience goes beyond just handling errors to include recovery, elasticity, and robustness. Understanding this distinction is crucial before diving into patterns like timeouts, retries, and circuit breakers.
+
+## Definitions
+
+- **Fault Tolerance**  
+  > The system’s ability to continue functioning correctly even when some components fail. It focuses on continuity—catching and handling errors so that clients see minimal disruption.
+
+- **Resilience**  
+  > The broader capability to adapt, recover, and sustain performance under stress or unexpected conditions. Resilience encompasses fault tolerance but also includes self-healing, scalability under load, and graceful degradation.
+
+## Key Characteristics
+
+| Aspect               | Fault Tolerance                     | Resilience                                |
+|----------------------|--------------------------------------|-------------------------------------------|
+| Goal                 | Survive individual failures          | Adapt and recover under adverse scenarios |
+| Scope                | Error handling and redundancy        | Architecture design and operational maturity |
+| Example Techniques   | Try/catch blocks, retries, timeouts  | Circuit breakers, bulkheads, health checks |
+| Outcome              | Continue serving requests            | Maintain acceptable performance and recover |
+
+## Example Snippet (Pseudo-Code)
+
+```java
+@RestController
+public class CustomerController {
+    private final OrderClient orderClient;
+
+    @GetMapping("/customer/{id}/orders")
+    public List<Order> getOrders(@PathVariable String id) {
+        try {
+            return orderClient.fetchOrders(id);
+        } catch (Exception e) {
+            // Fallback for fault tolerance
+            log.warn("Order service unavailable, returning empty list", e);
+            return Collections.emptyList();
+        }
+    }
+}
+```
