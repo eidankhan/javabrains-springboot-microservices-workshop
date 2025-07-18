@@ -898,3 +898,9 @@ public class CustomerController {
     }
 }
 ```
+
+>  **Full API Architecture**
+So, here's the full API Architecture so far. We have three services again but `MovieInfoService` is calling an external API, `MovieDB API`.
+A slight addition we added to microservices but nothing big, nothing significant; very simple stuff.
+
+![Alt text](images/full-api-architecure.png)
