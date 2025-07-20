@@ -1257,3 +1257,94 @@ Timeouts:
 ✔️ Prevent infinite blocking  
 ❌ Do **not** prevent server overload during high traffic
 
+> # 🔌 Understanding Circuit Breaker Pattern in Microservices
+
+## 1️⃣ What is a Circuit Breaker?
+
+In a microservices architecture, many small services communicate with each other. Sometimes, one service might become **slow or fail**. Without protection, your app can get stuck waiting, causing **slowdowns or cascading failures**.
+
+🧯 **Circuit Breaker** is a design pattern inspired by electrical circuit breakers. It detects when a service is **failing repeatedly** and **"opens"** the circuit to **stop sending requests** to that service temporarily.
+
+✅ Helps your system stay **responsive** and **resilient**.
+
+## ❓ Why Use a Circuit Breaker?
+
+- ♻️ Prevents wasting resources on repeated failed calls
+- 🧨 Avoids **cascading failures** across services
+- ⚖️ Improves **system stability** and **user experience**
+- 🩺 Helps monitor **service health** and enables **graceful recovery**
+
+## ⚙️ How Does a Circuit Breaker Work?
+
+- 🔒 **Closed** – All requests flow normally.
+- 🛑 **Open** – Requests are blocked instantly; fallback is used.
+- 🚧 **Half-open** – After wait time, a few test requests are allowed to check recovery.
+
+## 🔌 When/Where to apply a Circuit Breaker?
+> Technically, you can apply circuit breaker pattern to every microservice which calls to an other microservice because when there's call it can technically lead to consumption of the resources.
+
+## 📊 Key Circuit Breaker Parameters
+
+These parameters control **when** to trip the circuit and when to reset:
+
+| 📌 Parameter                      | 📝 Description                                 | 💡 Example                         |
+|-------------------------------|-----------------------------------------------|-----------------------------------|
+| **🧮 Number of recent requests (N)** | How many requests to evaluate                 | Last 5 requests                   |
+| **📉 Failure threshold**          | How many failures out of N will trip it       | 3 out of 5                        |
+| **⏱️ Timeout for requests**       | Max time to wait before marking as failed     | 2 seconds                         |
+| **🕒 Wait duration before retry** | Time to wait before trying again              | 10 seconds                        |
+
+## 💥 When Does the Circuit Break?
+
+- 🚨 After **N recent requests**, if too many fail (timeouts, errors)
+- Circuit goes **open** and starts **rejecting requests**
+- Waits for retry duration before moving to half-open
+
+## 🧩 What To Do When The Circuit Breaks?
+
+Requests still come in — but calling the failing service is blocked. So what next?
+
+### 🧱 Fallback Strategies
+
+1. ❌ **Throw an error** (least preferred)
+  - Respond with error saying service is unavailable.
+  - ❗ Breaks UX and client flow.
+
+2. 📦 **Return a default/hardcoded response**
+  - Safe fallback, even if incomplete.
+  - ✅ Better than failure, but possibly stale.
+
+3. 🧊 **Return cached data** (best practice)
+  - Use stored data to keep app responsive.
+  - 🪄 Users may not even notice the service is down.
+
+## 🍕 Real-World Analogy
+
+Imagine your favorite pizza shop (`🎬 Movie Catalog Service`) relies on a specific cheese supplier (`🧀 Movie Info Service`).
+
+- One day, the supplier is late (**service is slow**).
+- The pizza shop says:  
+  **“Let’s stop calling the supplier for now”** → **Circuit breaks**
+
+👨‍🍳 But customers still want pizza:
+
+- ❌ Say “No pizza today” → **Throw error**
+- 🍕 Serve plain cheese pizza → **Default response**
+- 🧊 Use leftover cheese from the fridge → **Cached data**
+
+## ⚠️ Tips & Gotchas
+
+- ⚖️ Don’t make it **too sensitive** – could trip on minor hiccups.
+- 🛡️ Don’t make it **too tolerant** – may waste threads/resources.
+- 🧩 Always provide **fallback logic** for degraded modes.
+- 🧾 Make fallback responses **explicit** for clients to handle correctly.
+- 🕰️ Use **caching wisely** – balance between **freshness** and **availability**.
+
+## 📌 Summary
+
+| 🧠 Concept         | 🔍 Explanation                           |
+|-------------------|-------------------------------------------|
+| **🔌 Circuit Breaker** | Stops calls to failing service            |
+| **📊 Parameters**      | Define how and when the circuit trips      |
+| **🪂 Fallback**        | Logic to handle requests during failure     |
+| **🧊 Best Fallback**   | Use **cached data** for smoother UX         |
