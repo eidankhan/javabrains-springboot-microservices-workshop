@@ -1,5 +1,6 @@
 package io.javabrains.movie_catalog_service;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +25,7 @@ public class MovieCatalogResource {
     private WebClient.Builder webClientBuilder;
 
     @GetMapping("/{userId}")
+    @HystrixCommand(fallbackMethod = "getFallbackCatalog")
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId){
         // 1. Get hardcoded Ratings Data
         UserRating userRating = restTemplate.getForObject(
@@ -49,5 +51,11 @@ public class MovieCatalogResource {
                     return new CatalogItem(movie.getName(), movie.getDescription(), r.getRating());
                 })
                 .collect(Collectors.toList());
+    }
+
+    public List<CatalogItem> getFallbackCatalog(@PathVariable("userId") String userId) {
+        return Arrays.asList(
+                new CatalogItem("No movie", "", 0)
+        );
     }
 }

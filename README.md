@@ -1392,9 +1392,89 @@ Imagine your favorite pizza shop (`🎬 Movie Catalog Service`) relies on a spec
 - Even at Netflix, developers have shifted from using Hystrix directly to using it **via Spring Cloud**.
 >- Despite being in maintenance, **Hystrix remains the de facto standard** in many Spring-based microservices.
 
-## 💡 AnalogY
+## 💡 Analogy
 
 - **Parameter tuning** analogy:
   > "You break your head against the wall, come up with magical numbers that work perfectly today... but things can change tomorrow."
 
   — Emphasizes the **challenge of static parameters** in dynamic systems and the need for adaptive solutions.
+
+> # 🛠️ Adding Hystrix in Spring Boot Microservices
+
+### 🔹 Goal: Implement Fault Tolerance Using Hystrix
+Hystrix is used to implement the **Circuit Breaker** pattern to prevent cascading failures when downstream services are unavailable or slow.
+
+
+### ✅ Steps to Add Hystrix:
+
+1. **Add Maven Dependency**
+   - Add `spring-cloud-starter-netflix-hystrix` to `pom.xml`.
+
+2. **Enable Circuit Breaker**
+   - Add `@EnableCircuitBreaker` to the main `@SpringBootApplication` class.
+
+3. **Add `@HystrixCommand`**
+   - Annotate methods that make external service calls.
+   - These methods will now break the circuit on failures.
+
+4. **Configure Fallback Method**
+   - Specify a `fallbackMethod` to be executed when the circuit breaks.
+   - Keep fallback logic simple (e.g., hardcoded values or cache lookup).
+
+
+>- **"Hystrix is there but doing nothing"**: After enabling Hystrix, it doesn’t take action until you annotate specific methods.
+
+>- **Fallback in case of failure**: "You don’t want the fallback to call another service. Then that fallback could fail, and you'd need a fallback for that fallback!"
+
+---
+
+## 🔧 Code Snippets
+
+### 1️⃣ Add Dependency in pom.xml file
+```xml
+<dependency>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+````
+
+### 2️⃣ **Enable Circuit Breaker in Main Class**
+
+```java
+@SpringBootApplication
+@EnableCircuitBreaker
+public class MovieCatalogServiceApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(MovieCatalogServiceApplication.class, args);
+    }
+}
+```
+
+### 3️⃣ **Annotate Method with @HystrixCommand**
+
+```java
+@HystrixCommand(fallbackMethod = "getFallbackCatalog")
+public List<CatalogItem> getCatalog(@PathVariable("userId") String userId) {
+    // Calls to RatingDataService and MovieInfoService
+}
+```
+
+### 4️⃣ **Define the Fallback Method**
+
+```java
+public List<CatalogItem> getFallbackCatalog(@PathVariable("userId") String userId) {
+    return Arrays.asList(
+        new CatalogItem("No movie", "", 0)
+    );
+}
+```
+
+> 💡 Fallback method must have **same method signature** as the original.
+
+
+### 5️⃣ **Simulating Fallback Behavior**
+
+* Stop the `movie-info-service` manually.
+* Restart the catalog service.
+* When the service call fails, Hystrix invokes `getFallbackCatalog()`.
+
