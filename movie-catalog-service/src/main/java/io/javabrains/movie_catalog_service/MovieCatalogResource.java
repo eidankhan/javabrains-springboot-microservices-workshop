@@ -16,51 +16,21 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/catalog")
 public class MovieCatalogResource {
+    @Autowired
+    private UserRatingService userRatingService;
 
     @Autowired
-    private RestTemplate restTemplate;
-
-    // Inject and use WebClient
-    @Autowired
-    private WebClient.Builder webClientBuilder;
+    private MovieInfoService movieInfoService;
 
     @GetMapping("/{userId}")
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId){
         // 1. Get hardcoded Ratings Data
-        UserRating userRating = getUserRating(userId);
+        UserRating userRating = userRatingService.getUserRating(userId);
 
         // 2. Enrich each rating by fetching movie info
         assert userRating != null;
         return userRating.getRatings().stream()
-                .map(this::getCatalogItem)
+                .map(r -> movieInfoService.getCatalogItem(r))
                 .collect(Collectors.toList());
     }
-
-    @HystrixCommand(fallbackMethod = "getFallbackCatalogItem")
-    private CatalogItem getCatalogItem(Rating r) {
-        Movie movie = webClientBuilder.build()
-                .get()
-                .uri("http://MOVIE-INFO-SERVICE/movies/" + r.getMovieId())
-                .retrieve()
-                .bodyToMono(Movie.class)     // Reactive wrapper
-                .block();
-        return new CatalogItem(movie.getName(), movie.getDescription(), r.getRating());
-    }
-
-    @HystrixCommand(fallbackMethod = "getFallbackUserRating")
-    private UserRating getUserRating(String userId) {
-        return restTemplate.getForObject(
-                "http://MOVIE-RATING-SERVICE/ratings-data/users/" + userId,
-                UserRating.class
-        );
-    }
-
-    private List<CatalogItem> getFallbackCatalogItem(){
-        return Arrays.asList(new CatalogItem("No Movie", "", 0));
-    }
-
-    private UserRating getFallbackUserRating(){
-        return new UserRating(Arrays.asList(new Rating("Movie Not found",0)));
-    }
-
 }
