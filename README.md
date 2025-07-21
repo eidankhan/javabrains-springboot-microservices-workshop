@@ -1614,3 +1614,87 @@ public class MyService {
         // ... fallback logic ...
     }
 }
+```
+
+> # Hystrix Dashboard Setup in Movie Catalog Service
+
+📘 **Key Concepts Explained**
+- **Hystrix Dashboard (“Hystrix UI” / “Turbine history dashboard”):**  
+  A web‑based UI that visualizes real‑time circuit‑breaker metrics (open/closed status, throughput, latency percentiles, thread‑pool usage) from one or more microservices.  
+- **Standalone vs. Embedded Dashboard:**  
+  - **Embedded:** Repurpose an existing microservice (here, Movie Catalog) to also serve the dashboard.  
+  - **Standalone:** Create a separate “dashboard” app that aggregates streams from many services using Turbine (not covered here).  
+
+💡 **Analogies/Examples**  
+> *No explicit analogies were used by Kaushik in this segment.*  
+
+🔧 **Code / Config Snippets**
+
+1. **Add dependencies** to `pom.xml` of your Movie Catalog service:
+   ```xml
+   <!-- Hystrix Dashboard UI -->
+   <dependency>
+     <groupId>org.springframework.cloud</groupId>
+     <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+   </dependency>
+
+   <!-- Expose actuator endpoints -->
+   <dependency>
+     <groupId>org.springframework.boot</groupId>
+     <artifactId>spring-boot-starter-actuator</artifactId>
+   </dependency>
+```
+
+2. **Enable the dashboard** in your main application class:
+
+   ```java
+   @SpringBootApplication
+   @EnableHystrixDashboard
+   public class MovieCatalogServiceApplication {
+       public static void main(String[] args) {
+           SpringApplication.run(MovieCatalogServiceApplication.class, args);
+       }
+   }
+   ```
+
+3. **Expose the Hystrix stream** in `application.properties`:
+
+   ```properties
+   # Allow the hystrix.stream endpoint to be exposed
+   management.endpoints.web.exposure.include=hystrix.stream
+   ```
+
+4. **Run & Access UI**
+
+  * Restart the service.
+  * Open a browser at:
+
+    ```
+    http://localhost:<port>/hystrix
+    ```
+  * In the “Hystrix Dashboard” page, enter the stream URL (for this same app), e.g.:
+
+    ```
+    http://localhost:<port>/actuator/hystrix.stream
+    ```
+  * Click **Monitor Stream**.
+
+---
+
+## What You’ll See in the Dashboard
+
+* **Circuits panel:**
+
+  * Lists each circuit breaker by name (e.g. `getCatalogItem`, `getUserRating`).
+  * Status indicator: closed (green) until a timeout/error opens them.
+* **Throughput & Latency Metrics:**
+
+  * Total requests per circuit.
+  * Median (50th), 90th, 99th, 99.5th percentile latencies.
+* **Thread‑Pool Metrics:**
+
+  * Pool size (e.g. 10 threads).
+  * Active threads count, queue size, etc.
+
+> *Tip: Generate some traffic (e.g. repeatedly call your service’s endpoints) before hitting “Monitor Stream” so the dashboard has data to plot.*
+
