@@ -1283,6 +1283,35 @@ In a microservices architecture, many small services communicate with each other
 ## 🔌 When/Where to apply a Circuit Breaker?
 > Technically, you can apply circuit breaker pattern to every microservice which calls to an other microservice because when there's call it can technically lead to consumption of the resources.
 
+## 🔄  Circuit Breaker Pattern
+
+                       ┌──────────────────────────────┐
+                       │ ① When to Break Circuit      │
+                       │------------------------------│
+                       │ - Too many failures?         │
+                       │ - Latency too high?          │
+                       │ - Service unhealthy?         │
+                       └──────────────┬───────────────┘
+                                      │ Yes
+                                      ▼
+                       ┌──────────────────────────────┐
+                       │ ② What to Do When It Breaks  │
+                       │------------------------------│
+                       │ - Open circuit               │
+                       │ - Block requests             │
+                       │ - Optionally fallback        │
+                       │ - Start timer                │
+                       └──────────────┬───────────────┘
+                                      │ After timeout
+                                      ▼
+                       ┌──────────────────────────────┐
+                       │ ③ When to Resume Requests    │
+                       │------------------------------│
+                       │ - Allow a few test requests  │
+                       │ - If success → Close circuit │
+                       │ - If failure → Stay open     │
+                       └──────────────────────────────┘
+
 ## 📊 Key Circuit Breaker Parameters
 
 These parameters control **when** to trip the circuit and when to reset:
@@ -1348,3 +1377,24 @@ Imagine your favorite pizza shop (`🎬 Movie Catalog Service`) relies on a spec
 | **📊 Parameters**      | Define how and when the circuit trips      |
 | **🪂 Fallback**        | Logic to handle requests during failure     |
 | **🧊 Best Fallback**   | Use **cached data** for smoother UX         |
+
+> # 🧠 Hystrix 
+
+## 📘 Key Concepts 
+- **Hystrix** is an open-source library by **Netflix**, designed to implement the **Circuit Breaker pattern**.
+- Part of Netflix’s microservices ecosystem alongside **Eureka**, **Ribbon**, etc.
+>- **Goal of Hystrix**: Eliminate the need to write low-level **network and thread programming code** in microservices.
+- Developers only need to **configure parameters** — Hystrix handles the rest.
+- **Spring Boot integration** is seamless; Hystrix works very well in **Spring Cloud** projects.
+> - **Current Status**: Hystrix is in **maintenance mode** (not under active development) but still widely used.
+> - **Reason for maintenance mode**: Project goals were successfully met.
+- **Fault tolerance** as a space is still evolving (e.g., move towards **adaptive fault tolerance**).
+- Even at Netflix, developers have shifted from using Hystrix directly to using it **via Spring Cloud**.
+>- Despite being in maintenance, **Hystrix remains the de facto standard** in many Spring-based microservices.
+
+## 💡 AnalogY
+
+- **Parameter tuning** analogy:
+  > "You break your head against the wall, come up with magical numbers that work perfectly today... but things can change tomorrow."
+
+  — Emphasizes the **challenge of static parameters** in dynamic systems and the need for adaptive solutions.
