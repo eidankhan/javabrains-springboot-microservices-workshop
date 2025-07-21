@@ -1707,6 +1707,8 @@ public class MyService {
   - Prevents one slow or failing service from exhausting threads/resources and bringing down other services.  
   - Complements scaling and circuit breakers—can be used together.
 
+![Alt text](images/bulkhead-pattern.png)
+
 ## 💡 Analogies/Examples
 
 - **Shipbuilding Analogy**  
