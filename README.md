@@ -1478,3 +1478,32 @@ public List<CatalogItem> getFallbackCatalog(@PathVariable("userId") String userI
 * Restart the catalog service.
 * When the service call fails, Hystrix invokes `getFallbackCatalog()`.
 
+> # 🎬 How does Hystrix Work
+
+- **Hystrix & Circuit Breaker in Spring Boot**:
+  - >Hystrix enables **circuit breaking** by monitoring method calls and rerouting them to a **fallback method** if failures occur.
+  - >You only need to annotate a method with Hystrix’s annotation—**no manual `if` condition checks** required.
+  - >Spring handles the integration through **proxies**.
+
+- **How Hystrix Works Internally**:
+  - **Proxy-based design**:
+    - When a class/method is annotated with Hystrix annotations, Hystrix **wraps the actual class with a proxy**.
+    - Any call made to that bean goes through the **proxy**, not the original object.
+    - >The proxy **monitors execution** and checks for failures.
+    - On success: it passes the call through like normal.
+    - On failure: it **redirects** the call to a **fallback method** (based on annotation parameters).
+  - Hystrix proxy:
+    - Contains the **circuit breaker logic**.
+    - > **Decides when to “break the circuit”** and route calls to fallback instead of the actual method.
+    - > Monitors when to **restore the circuit** and resume calling the original method.
+
+- **Spring Framework’s Role**:
+  - The Spring Framework injects the **proxied object**, not the actual class, so circuit-breaking behavior is built-in via **dependency injection**.
+
+- **Importance of Understanding Proxies**:
+  - The concept of **proxy wrapping** is essential for understanding:
+    - Why circuit breaker logic works transparently.
+    - Potential issues you may encounter due to proxying (to be discussed later in the series).
+
+
+> ##### When things are working fine, the Hystrix proxy is just **passing the parcel** (method calls) to the real method and returning the result.  But it’s also **keeping track**—monitoring every call for failures.
