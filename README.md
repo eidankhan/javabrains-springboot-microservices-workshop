@@ -1698,3 +1698,45 @@ public class MyService {
 
 > *Tip: Generate some traffic (e.g. repeatedly call your service’s endpoints) before hitting “Monitor Stream” so the dashboard has data to plot.*
 
+> # 📘 Bulkhead Pattern (Hystrix)
+
+- **Bulkhead Pattern**  
+  - A fault‑isolation technique borrowed from shipbuilding.  
+  - Isolates resources (e.g. thread pools) into “watertight compartments” so that failure in one doesn’t cascade to others.  
+- **Why Use It?**  
+  - Prevents one slow or failing service from exhausting threads/resources and bringing down other services.  
+  - Complements scaling and circuit breakers—can be used together.
+
+## 💡 Analogies/Examples
+
+- **Shipbuilding Analogy**  
+  - Ships are divided into watertight bulkheads (compartments).  
+  - If one compartment is breached (hole in hull → water enters), only that compartment floods; the rest stay dry.  
+  - In microservices, each service (or method) gets its own “watertight” thread pool.
+
+- **Microservices Thread Pools**  
+  - Service **A** and Service **B** each get separate thread pools.  
+  - If B gets a flood of requests and all its threads are busy, A’s pool remains unaffected—A stays fast even if B is slow.
+
+## 🔧 Code/Config Snippets
+
+```java
+// Example: isolating the “movieInfo” calls into their own bulkhead
+@HystrixCommand(
+  threadPoolKey = "movieInfoPool",        // unique name = new bulkhead
+  threadPoolProperties = {
+    @HystrixProperty(name = "coreSize", value = "20"),       // max concurrent threads
+    @HystrixProperty(name = "maxQueueSize", value = "10")    // max queued requests waiting
+  }
+)
+public Movie getMovieInfo(String movieId) {
+    // … your service call …
+}
+````
+
+* **Properties**
+  1. `threadPoolKey` – assigns a separate thread‑pool (bulkhead) to the method.
+  2. `coreSize` – how many threads can run concurrently in that pool (e.g., 20).
+  3. `maxQueueSize` – how many extra requests can wait in queue before rejecting/fallback (e.g., 10).
+
+> *With this setup, even if “movieInfoPool” is saturated, other pools (e.g., `ratingPool`) continue unhindered.*
