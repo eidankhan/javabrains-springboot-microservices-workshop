@@ -1507,3 +1507,50 @@ public List<CatalogItem> getFallbackCatalog(@PathVariable("userId") String userI
 
 
 > ##### When things are working fine, the Hystrix proxy is just **passing the parcel** (method calls) to the real method and returning the result.  But it’s also **keeping track**—monitoring every call for failures.
+
+> # 📘 Problem with Hystrix Proxy
+
+![Alt Text](/images/hystrix-proxy-class.png)
+
+- ### Problem with current circuit breaker approach: 
+A single method calls two APIs (Ratings Data Service & Movie Info Service). If *either* API fails, the circuit breaker trips and the *entire* fallback method runs. This is not ideal because:
+  - > _If only one service fails (e.g., Movie Info), we still want to return valid data from the other (Ratings)._
+  - > _Current fallback is a hardcoded generic response, losing useful data from the working service._
+
+- ### Desired improvement:  
+  Split the single API-calling method into two separate methods:
+  - > One method calls Ratings Data Service.
+  - > One method calls Movie Info Service.  
+  - > Each method gets its **own fallback**, providing more granular and useful fallback data.
+
+- ### Refactoring steps:
+  1. > Extract two methods: `getUserRating()` and `getCatalogItem()`.
+  2. > Add Hystrix `@HystrixCommand` with individual fallbacks: `getFallbackUserRating()`, `getFallbackCatalogItem()`.
+  3. > Remove the fallback on the main API method because its components handle fallbacks individually.
+
+- ### How fallback methods work:
+  - > Fallback methods are hardcoded with simple, safe default values.
+  - > Example: `getFallbackUserRating()` returns a user rating with one movie (ID=0) and rating=0.
+  - > Example: `getFallbackCatalogItem()` returns a catalog item with the movie name `"Movie name not found"` to indicate fallback.
+
+- ### Why the fallback might *not* get triggered:
+  - > Hystrix uses a **proxy class** to intercept calls and apply circuit breaker logic.
+  - > When an external caller invokes a Hystrix-annotated method, the call goes through the proxy, enabling fallback.
+  - > However, **calls within the same class** to Hystrix-annotated methods bypass the proxy (they are direct calls), so fallback logic is *not* triggered.
+  - > This happens because the proxy only wraps external method calls, not internal ones.
+
+- ### Solution to internal call problem:
+  - > Move the fallback-enabled methods (`getUserRating()`, `getCatalogItem()`) to a **separate Spring bean/service**.
+  - > Autowire that new service in the main API class.
+  - > The main API method calls methods on this separate bean, which goes through the proxy, allowing Hystrix to trigger fallbacks properly.
+
+---
+
+## 💡 Analogies/Examples
+
+- >**Proxy analogy:**  
+  Hystrix creates a proxy wrapper around the API class. The caller actually holds the proxy instance, not the real class. This proxy can intercept calls and decide whether to run the actual method or fallback.  
+  But when one method inside the class calls another method of the same class, the call doesn't go through the proxy, so the fallback cannot happen.
+
+- >**Granular fallback analogy:**  
+  Imagine two separate circuit breakers for two separate power lines instead of one for both. If one line fails, the other still works, so the house still gets some power (some data), not total blackout.
