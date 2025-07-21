@@ -1554,3 +1554,63 @@ A single method calls two APIs (Ratings Data Service & Movie Info Service). If *
 
 - >**Granular fallback analogy:**  
   Imagine two separate circuit breakers for two separate power lines instead of one for both. If one line fails, the other still works, so the house still gets some power (some data), not total blackout.
+
+> # 📘 Hystrix Command Parameters
+
+### `fallbackMethod` Specifies the method to call when the primary command fails or times out.
+- **`commandProperties`**  
+  An array of `@HystrixProperty` annotations that fine‑tune circuit‑breaker behavior:
+  1. **`execution.isolation.thread.timeoutInMilliseconds`**  
+     Time to wait before declaring a timeout.
+     > “It’s like you’re saying wait for this long and if it doesn’t happen, cause the timeout.”
+  2. **`circuitRequestVolumeThreshold`**  
+     Minimum number of requests in the rolling window that must occur before the circuit breaker considers tripping.
+     > e.g. with value `5`, Hystrix looks at the last 5 requests.
+  3. **`circuitErrorThresholdPercentage`**  
+     Percentage of failed requests (out of those in the rolling window) required to trip the circuit.
+     > e.g. with value `50`, if 3 out of the last 6 requests fail, the circuit will open.
+  4. **`circuitSleepWindowInMilliseconds`**  
+     How long (in ms) to wait after tripping before allowing a “single test” request through.
+     > e.g. `5000` ms = 5 seconds.
+
+- **Concept over Syntax**  
+  Once you understand what each parameter does, the annotation syntax is trivial to look up and apply.
+- **Tuning for Your Use‑Case**  
+  Selecting optimal values requires analyzing your own traffic patterns and may benefit from both community reports and academic studies.
+
+## 🔧 Code/Config Snippets
+```java
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
+
+public class MyService {
+
+    @HystrixCommand(
+        fallbackMethod = "myFallbackMethod",
+        commandProperties = {
+            @HystrixProperty(
+                name  = "execution.isolation.thread.timeoutInMilliseconds",
+                value = "1000"
+            ),
+            @HystrixProperty(
+                name  = "circuitRequestVolumeThreshold",
+                value = "5"
+            ),
+            @HystrixProperty(
+                name  = "circuitErrorThresholdPercentage",
+                value = "50"
+            ),
+            @HystrixProperty(
+                name  = "circuitSleepWindowInMilliseconds",
+                value = "5000"
+            )
+        }
+    )
+    public String myPrimaryMethod() {
+        // ... primary logic ...
+    }
+
+    public String myFallbackMethod() {
+        // ... fallback logic ...
+    }
+}

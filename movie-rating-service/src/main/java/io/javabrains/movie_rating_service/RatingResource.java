@@ -21,8 +21,8 @@ public class RatingResource {
     public UserRating getUserRatingData(@PathVariable("userId") String userId){
         // 1. Get hardcoded Ratings Data
         List<Rating> ratings = Arrays.asList(
-                new Rating("1087192", 4),
-                new Rating("1087191", 5)
+                new Rating("123", 4),
+                new Rating("456", 5)
         );
         return new UserRating(ratings);
     }
