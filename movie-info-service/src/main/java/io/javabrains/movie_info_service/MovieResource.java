@@ -21,6 +21,7 @@ public class MovieResource {
 
     @GetMapping("/{movieId}")
     public Movie getMovie(@PathVariable("movieId") String movieId){
+        System.out.println("Selected language is:"+tmdbConfiguration.getLang());
         // Simulate fetching movie data from a TMDB database
         MovieSummary movieSummary = webClientBuilder.build()
                 .get()

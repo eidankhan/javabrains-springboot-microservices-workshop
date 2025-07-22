@@ -2522,3 +2522,109 @@ spring:
     config:
       uri: http://localhost:8888    # URL of your Config Server
 ```
+
+> # 📘 Spring Cloud Config: Dynamic Refresh
+
+- **Externalized, Versioned Config**  
+  > - Config files live in a Git repo and are served by Spring Cloud Config Server  
+  > - Server always reads latest from Git on each request—no restart needed  
+
+- **Client‐Side Caching**  
+  > - Microservices fetch properties at startup and cache them locally  
+  > - They do **not** poll for updates (avoids wasted CPU/memory cycles)  
+
+- **Dynamic Refresh Workflow**  
+  > 1. **Update Git** → commit new property value  
+  > 2. **Config Server** (always up‐to‐date) serves new values immediately  
+  > 3. **Client Trigger** → call Actuator `/refresh` endpoint  
+  > 4. **Client** re‐fetches and re‐injects annotated beans  
+
+- **Prerequisites on Client**  
+  > 1. **Actuator Dependency** → exposes `/actuator/refresh` endpoint  
+  > 2. **`@RefreshScope`** on beans using config values → marks beans for runtime re‐injection  
+
+
+## 💡 Use Cases
+- **“Business vs. Config Responsibility”**  
+  > *Config Server*’s sole job is to serve config—so it constantly checks Git  
+  >*Microservices* solve business problems—so they shouldn’t waste cycles polling for config  
+
+- **“Bean Refresh = Dependency Injection 2.0”**  
+  > `@Value` injections are normal dependencies  
+  > `@RefreshScope` means “treat these injected values like any other bean dependency—refresh me when triggered”
+
+## 🔧 Code/Config Snippets
+
+### 1. Add Actuator Dependency (pom.xml)
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+````
+
+### 2. Expose Actuator Endpoints (application.yml / properties)
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh, health, info
+```
+
+### 3. Mark Beans for Refresh
+
+```java
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
+@RefreshScope
+public class GreetingService {
+  
+  @Value("${greeting.message}")
+  private String message;
+  
+  public String getGreeting() {
+    return message;
+  }
+}
+```
+
+### 4. Trigger a Refresh (HTTP POST)
+
+```bash
+# Using curl or any REST client
+POST http://localhost:8080/actuator/refresh
+Headers:
+  Content-Type: application/json
+Body:
+  {}    # empty JSON
+```
+
+### 5. Refresh Sequence
+
+1. Commit new value in Git:
+
+   ```bash
+   git add .
+   git commit -m "updated greeting"
+   git push
+   ```
+2. Verify server sees it:
+
+   ```
+   GET http://localhost:8888/<app-name>/default
+   ```
+3. Trigger client refresh:
+
+   ```
+   POST http://localhost:8080/actuator/refresh
+   ```
+4. Confirm new message:
+
+   ```
+   GET http://localhost:8080/greeting
+   ```
