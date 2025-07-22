@@ -2157,3 +2157,106 @@ management:
 
 > **Note:** Spring Boot supports both flattened (`management.endpoints.web.exposure.include: health`) and nested forms.
 
+> # 📘 Spring Profiles
+
+- **Externalized, Environment‑Specific Configuration**  
+  > - Property files can live outside the JAR (same folder, system vars, etc.), but managing separate files per environment manually is error‑prone.  
+  > - **Drawbacks**: no source‑control/auditing, manual effort to place correct file in each environment.
+
+- **Spring Profiles Overview**  
+  > - A *profile* = a named group of configuration properties.  
+  > - **Default profile**: always active; corresponds to `application.yml` (or `.properties`) settings we’ve been using.  
+  > - **Other profiles**: created by adding files named `application-<profile>.yml`. They sit “on top” of default.
+
+- **Profile Activation & Override**  
+  > - By default, Spring uses only the default profile.  
+  > - To switch, set `spring.profiles.active` to the desired profile name.  
+  > - Active profile’s properties **override** any same‑named keys in default.
+
+- **Multiple Profiles & Precedence**  
+  > - You can activate multiple profiles; order matters for overrides.  
+  > - Default profile is always active; any key not in an active profile still comes from default.
+
+- **Deployment without Rebuilding**  
+  > - Package one JAR with all profiles inside (`application.yml`, `application-dev.yml`, `application-qa.yml`, `application-prod.yml`).  
+  - Choose profile at runtime via command‑line:  
+     ```bash
+     java -jar myapp.jar --spring.profiles.active=qa
+     ```
+   - No manual editing or swapping of files per environment.
+
+- **Profile‑Specific Beans**  
+  > - Annotate beans/classes with `@Profile("dev")` or `@Profile("prod")` to register them only under those profiles.  
+  > - Beans without a `@Profile` live in default.  
+  > - At runtime, Spring instantiates default beans plus those from the active profile(s).  
+  > - Ensures only one bean of a given type is loaded (active‑profile bean overrides default).
+
+## 💡 Examples
+- **Profile = Preset of Config Values**  
+  > “You can think of a profile as a set of configuration values… go together in a group and form a profile.”
+
+- **Layered Overrides**  
+  > Default profile is the base layer; active profiles sit on top and override matching keys.
+
+## 🔧 Code/Config Snippets
+
+### 1. Default (`application.yml`)
+```yaml
+server:
+  port: 8080
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/devdb
+    username: devuser
+    password: devpass
+````
+
+### 2. Create a New Profile File (`application-test.yml`)
+
+```yaml
+server:
+  port: 2400
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/testdb
+    username: testuser
+    password: testpass
+```
+
+### 3. Activate Profile in Default File (`application.yml`)
+
+```yaml
+spring:
+  profiles:
+    active: test
+```
+
+### 4. Activate Profile via Command‑Line
+
+```bash
+java -jar myapp.jar --spring.profiles.active=qa
+# or
+java -jar myapp.jar --spring.profiles.active=prod
+```
+
+### 5. Profile‑Specific Bean Definitions
+
+```java
+@Configuration
+@Profile("dev")
+public class LocalDataSourceConfig {
+    @Bean
+    public DataSource dataSource() {
+        // local/test datasource
+    }
+}
+
+@Configuration
+@Profile("prod")
+public class ProdDataSourceConfig {
+    @Bean
+    public DataSource dataSource() {
+        // production datasource
+    }
+}
+```
