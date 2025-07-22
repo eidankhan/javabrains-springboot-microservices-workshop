@@ -2451,3 +2451,74 @@ http://localhost:8888/application/default
 
 > After this, any change to `application.yml` in the Git repo can be committed and (with a later refresh mechanism) will be picked up by all client microservices without redeploying them.
 
+# 📘 Setting up spring cloud config client
+
+- **Spring Cloud Config Client**  
+  > A Spring Boot application can externalize its configuration by connecting to a centralized Config Server (which itself reads from a Git repo). Instead of using local `application.properties`/`application.yml`, the client pulls its settings at startup from the Config Server.
+
+- **Bootstrapping a Config Client**  
+  > 1. **Add the Spring Cloud Config Client dependency** (`spring-cloud-starter-config`).  
+  > 2. **Import the Spring Cloud BOM** in `<dependencyManagement>` so that the right versions of all Spring Cloud artifacts are used.  
+  > 3. **Point the client** to your Config Server via `spring.cloud.config.uri` in your `application.yml` (or `.properties`).
+
+- **Property Resolution Order**  
+  > - First, Config Server’s `application.yml` (global defaults)  
+  > - Then, Config Server’s `<application-name>.yml` (service‑specific overrides)  
+  > - Finally, any local overrides (not covered in this video)
+
+- **Service‑Specific Configuration**  
+  > By setting `spring.application.name` in the client, Spring Cloud Config Server will look for a file of the same name in the Git repo (e.g. `spring-boot-config.yml`) and apply those properties only to that service.  
+
+- **Benefits Achieved**  
+  > - **Consistent property source** across all instances & services  
+  > - **Versioned history** of all configuration via Git  
+  > - (Next tutorial: real‑time refresh of properties)
+
+
+## 💡 Benefits
+
+> “If you have ten microservices, you repeat exactly these same steps on all ten — point each one at the Config Server and they’ll all pull their config from the same Git‑backed source.”
+**Global vs. Service‑specific**  
+
+  - Global file (`application.yml`): like a company handbook everyone sees  
+  - Service file (`<app-name>.yml`): like an individual’s personal addendum  
+
+
+## 🔧 Code/Config Snippets
+
+### 1. `pom.xml` additions
+
+```xml
+<!-- 1. Import Spring Cloud BOM in dependencyManagement -->
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-dependencies</artifactId>
+      <version>${spring-cloud.version}</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+
+<!-- 2. Add the Spring Cloud Config Client starter -->
+<dependencies>
+  <dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-config</artifactId>
+  </dependency>
+  <!-- your other dependencies -->
+</dependencies>
+````
+
+### 2. `application.yml` (Config Client)
+
+```yaml
+spring:
+  application:
+    name: spring-boot-config       # must match <app>.yml in Git
+  cloud:
+    config:
+      uri: http://localhost:8888    # URL of your Config Server
+```
