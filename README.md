@@ -2322,3 +2322,38 @@ String url      = env.resolvePlaceholders("${app.baseUrl}/api");
 > * Use `@Value("${…}")` or `@ConfigurationProperties` for values.
 > * Use `@Profile` on beans to vary behavior per environment.
 > * Only reach for `Environment`‑lookup when you truly must.
+
+> # 📘 Spring Cloud Config Server (JavaBrains – Kaushik)
+
+- **Why externalized config?**
+  > - With a single Spring Boot app, property files & profiles let you externalize and profile‑specific your config.
+  > - In a microservices ecosystem, you need more: consistency across instances, version history, real‑time updates.
+
+- **Five goals for a microservices config system**
+  > 1. **Externalized** (✔️ via property files & external overrides)
+  > 2. **Environment‑specific** (✔️ via Spring Profiles)
+  > 3. **Consistent** (❌ still per‑instance)
+  > 4. **Version history** (❌ unreliable without consistency)
+  > 5. **Real‑time management** (❌ requires restarts or new builds)
+
+- **Consistency Matters**
+  > “One guy shouldn’t go … and say, ‘Hey, this is my DB connection string,’ and the other go, ‘No, I didn’t get that memo.’ That’s bad.”
+  > - A central service ensures all microservices read from the same source of truth.
+
+- **Configuration Service Pattern**
+  > - Introduce a separate “Config Service” microservice.
+  > - All other microservices ask it for property values (at startup or on‑demand).
+  > - Single source of truth → consistent across the board.
+
+- **Popular Config Store Options**
+  > - **Apache ZooKeeper** – distributed key‑value store + synchronization + naming
+  > - **etcd** – distributed key‑value store
+  > - **Consul** – service registry + KV store
+  > - **Spring Cloud Config Server** – the de‑facto standard for Spring Boot microservices
+
+- **Spring Cloud Config Server Model**
+  > 1. **Config Server** connects to a **Git repository** (your version‑controlled config store)
+  > 2. Microservices query the Config Server for their `application-{profile}.properties` or YAML
+  > 3. To update config in production:
+    >    - Commit & push changes to the Git repo
+    >    - Config Server serves the new values automatically (no rebuild of apps)
