@@ -2357,3 +2357,97 @@ String url      = env.resolvePlaceholders("${app.baseUrl}/api");
   > 3. To update config in production:
     >    - Commit & push changes to the Git repo
     >    - Config Server serves the new values automatically (no rebuild of apps)
+
+> # 📘  Spring Cloud Config Server Setup
+
+- **Spring Cloud Config Server**  
+  > A Spring Boot application that provides **centralized**, **externalized**, and **consistent** configuration for all microservices.  
+- **Configuration Sources**  
+  > - Git (SVN, HashiCorp Vault also supported)  
+  > - We focus on **Git** (local or remote).  
+- **Annotation**  
+  > - `@EnableConfigServer` on the main application class turns the Spring Boot app into a Config Server.  
+- **Property Resolution**  
+  > - System properties (e.g. `${HOME}`) and `file://` URLs can be used to point to a local Git repo.  
+- **REST Endpoints**  
+  - URL convention:  
+     ```
+     /{application}/{profile}/{label}
+     ```  
+   >- If no profile specified, defaults to `default`.  
+  >- If no label specified, defaults to the Git default branch.
+
+---
+
+
+> • **“Signing up a new Spring Cloud Config Server is just like creating any other Spring Boot project”**  
+> – you select Spring Boot, add the one Config Server dependency, annotate your main class, and you’re off.  
+>
+> • **System properties as placeholders**  
+> – `${HOME}` in your `application.properties` resolves to your OS home directory via Spring’s placeholder mechanism.
+
+
+## 🔧 Code/Config Snippets
+
+### 1. Project Setup (pom.xml)
+```xml
+<dependency>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-config-server</artifactId>
+</dependency>
+````
+
+### 2. Main Application
+
+```java
+@SpringBootApplication
+@EnableConfigServer
+public class ConfigServerApplication {
+  public static void main(String[] args) {
+    SpringApplication.run(ConfigServerApplication.class, args);
+  }
+}
+```
+
+### 3. application.properties (Config Server)
+
+```properties
+# Point to local or remote Git repo
+spring.cloud.config.server.git.uri=${HOME}/code/config-repo
+# Optional: force file protocol if not using system property
+# spring.cloud.config.server.git.uri=file://${HOME}/code/config-repo
+
+# Change server port if needed
+server.port=8888
+```
+
+### 4. Git Repository Initialization
+
+```bash
+# Create and enter directory
+mkdir config-repo
+cd config-repo
+
+# Create application.yml (example)
+
+# Initialize Git and commit
+git init
+git add application.yml
+git commit -m "Initial config for Config Server"
+```
+
+### 5. Accessing Configuration via REST
+
+```
+# URL pattern: http://<host>:<port>/<application>/<profile>
+# For our example:
+http://localhost:8888/application/default
+```
+
+* **`application`** → base name of the YAML/properties file
+* **`default`** → profile (uses `application.yml` if no profile-specific file exists)
+
+---
+
+> After this, any change to `application.yml` in the Git repo can be committed and (with a later refresh mechanism) will be picked up by all client microservices without redeploying them.
+
