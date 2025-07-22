@@ -2628,3 +2628,107 @@ Body:
    ```
    GET http://localhost:8080/greeting
    ```
+
+> # 📘  Configuration Strategies in Spring Boot Microservices
+
+### 1. Configuration Specificity & Change Likelihood  
+> - **Specificity**: How closely tied a property is to the internal workings of a single microservice.  
+> - **Change Likelihood**: How often you expect to modify that property at runtime.  
+  >   - **Low-likelihood, high-specificity** → package in `application.properties` inside the JAR (defaults baked‑in).  
+  >   - **High-likelihood, high-specificity** → expose via an external **Config Server** (runtime change via HTTP API).
+
+### 2. Drawing the “Internal vs. External” Line  
+- Mentally separate:
+  > - **Internal-only properties** (e.g., service name, internal tuning) ⇒ keep in local properties.  
+  > - **Runtime-changeable properties** (e.g., feature flags, connection strings) ⇒ store in Config Server.
+
+### 3. Cloud-Provider Environment Variables & Aliasing  
+> - Cloud hosts (AWS, Azure, Heroku, etc.) inject provider-specific env vars (e.g., `PORT`, `VCAP_SERVICES`).  
+> - **Best Practice**: Define a consistent **alias** in your Spring config, then map that to the provider var once.  
+  ```properties
+  # alias for provider port
+  env.port=${PORT}
+  server.port=${env.port:8080}
+````
+
+> * **Benefit 1**: Only one place to update when switching providers.
+> * **Benefit 2**: Consistent config keys across all microservices, regardless of host.
+
+### 4. Securing the Config Server
+
+1. **Server-Side Security**
+
+  > Add **Spring Security** to your Config Server for basic auth / OAuth, so only authorized clients can fetch configs.
+2. **Repository-Level Security**
+
+  > * Keep your Git repo private, but **never** store secrets in plaintext—even in a private repo.
+  > * **Encrypt** sensitive values before committing.
+
+---
+
+### 5. Encryption of Sensitive Properties
+
+* **Workflow**:
+
+  > 1. Use Spring Cloud Config Server’s `/encrypt` endpoint to encrypt plaintext secret.
+  > 2. Commit the encrypted blob in Git:
+
+     ```properties
+     db.password={cipher}AQB3lK9X...==
+     ```
+  > 3. At runtime, Config Server detects `{cipher}` prefix, **decrypts** and serves plaintext to authorized clients.
+> * **Requirement**: Java Cryptography Extension (JCE) installed on the Config Server JVM.
+
+
+### 6. Intelligent Defaults for Local Development
+
+* Avoid friction when running locally by supplying defaults in your property placeholders:
+
+  ```properties
+  spring.cloud.config.uri=${CONFIG_SERVER_URI:http://localhost:8888}
+  server.port=${env.port:8080}
+  ```
+* Ensures “out‑of‑the‑box” developer experience without extra env‑var setup.
+
+---
+
+### 7. 12‑Factor App: Configuration Factor
+
+> * Refer to the **“Config”** section of the 12‑factor methodology ([https://12factor.net/config](https://12factor.net/config)) for distilled best practices:
+  > * Strict separation of config from code.
+  > * Store config in the environment.
+  > * One codebase, multiple deploys.
+  > * Backing services as attached resources.
+
+
+## 💡 Scenarios
+
+> * **“Drawing the line”** between internal vs. external config—treat runtime-changeable settings like an external API, and internal settings like code constants.
+> * **Alias as an abstraction layer**: Like defining a company-wide shorthand so you never sprinkle provider-specific terms throughout your code.
+
+## 🔧 Code/Config Snippets
+
+```properties
+# 1. Internal-default, low-change
+app.serviceName=order-processor
+
+# 2. External-config via Config Server
+#    (CONFIG_SERVER_URL provided externally)
+spring.cloud.config.uri=${CONFIG_SERVER_URL}
+
+# 3. Env-var aliasing for cloud provider port
+env.port=${PORT}
+server.port=${env.port:8080}
+
+# 4. Encrypted secret stored in Git
+db.password={cipher}AQB3lK9X...==
+
+# 5. Default fallback for local dev
+spring.cloud.config.uri=${CONFIG_SERVER_URI:http://localhost:8888}
+```
+
+```java
+// Injecting a system property with default
+@Value("${home.location:/data/home}")
+private String homeLocation;
+```
