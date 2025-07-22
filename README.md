@@ -1944,3 +1944,132 @@ db.config=host:localhost,port:5432,user:app,pass:secret
 @Value("#{${db.config}}")
 private Map<String,String> dbConfig;
 ```
+
+## 📘 ConfigurationProperties Explained
+
+- **@ConfigurationProperties**  
+  > - Binds a group of related properties (all with a common prefix) into a single Spring bean.  
+  > - Scans for all properties starting with the specified prefix, matches them to fields in a POJO, and injects the values.  
+  > - Bean is available for autowiring anywhere in the application.  
+  > - Provides **type safety** at startup: conversion errors (e.g. non‑integer in an `int` field) fail fast.  
+
+- **@Value**  
+  > - Injects individual property values one at a time into fields.  
+  > - Suited for one‑off or single‑use properties, or when a property is only used in one place.  
+
+- **When to use which**  
+  > **@Value**:  
+    > - Single, one‑off values.  
+    > - Properties used in only one location.
+
+  > **@ConfigurationProperties**:
+    > 1. **Logical grouping** (e.g. all DB connection settings together).  
+    > 2. **Reusability** as a Spring bean in multiple components/services.  
+
+- **Spring Boot Actuator “/actuator/configprops” endpoint**  
+  > - Exposes all configuration‑properties beans (yours + Spring’s defaults).  
+  > - Must add the `spring-boot-starter-actuator` dependency and explicitly enable endpoint exposure.  
+  > - Useful in development for discovering available config props and current values.
+
+---
+
+## 💡 Examples
+
+- **Grouping vs. One‑by‑One**  
+  > Imagine pulling each book off the shelf individually (@Value) versus grabbing the entire boxed set at once (ConfigurationProperties).  
+  >  Using `@ConfigurationProperties` is like defining a “DB Settings” box that Spring fills with all related DB props in one go.
+
+- **Type Safety as Early Warning**  
+  > Mistyping `DB.port=foo` is caught immediately on startup—like a spell‑checker flagging a typo before you submit your document.
+  
+
+## 🔧 Code/Config Snippets
+
+### 1. Define a POJO for DB settings
+
+```java
+package com.example.config;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@ConfigurationProperties(prefix = "db")
+public class DBSettings {
+    private String connection;
+    private String host;
+    private int port;
+
+    // Getters & Setters
+    public String getConnection() { return connection; }
+    public void setConnection(String connection) { this.connection = connection; }
+
+    public String getHost() { return host; }
+    public void setHost(String host) { this.host = host; }
+
+    public int getPort() { return port; }
+    public void setPort(int port) { this.port = port; }
+}
+````
+
+### 2. Autowire in a Controller/Service
+
+```java
+package com.example.web;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.example.config.DBSettings;
+
+@RestController
+public class MyController {
+
+    @Autowired
+    private DBSettings dbSettings;
+
+    @GetMapping("/dbinfo")
+    public String showDbInfo() {
+        return String.format(
+            "Conn: %s, Host: %s, Port: %d",
+            dbSettings.getConnection(),
+            dbSettings.getHost(),
+            dbSettings.getPort()
+        );
+    }
+}
+```
+
+### 3. application.properties
+
+```properties
+# Grouped DB properties
+db.connection=jdbc:mysql://localhost:3306/mydb
+db.host=localhost
+db.port=3306
+
+# Enable Actuator “configprops” endpoint (dev only)
+management.endpoints.web.exposure.include=*
+```
+
+### 4. Add Actuator Dependency (pom.xml)
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+### 5. Accessing the ConfigProps Endpoint
+
+```
+GET http://localhost:8080/actuator/configprops
+```
+
+* Lists all `@ConfigurationProperties` beans and their current values (including Spring Boot’s own).
+* Handy for exploring available configuration keys and verifying overrides.
+
+
+# Enable Actuator “configprops” endpoint (dev only)
+management.endpoints.web.exposure.include=*
