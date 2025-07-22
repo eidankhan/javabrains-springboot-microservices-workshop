@@ -1786,3 +1786,29 @@ public Movie getMovieInfo(String movieId) {
 - **Feature‑flag rollout**  
   > “Put a new feature behind a flag and enable it only 8–10 pm nightly, watch engagement, then extend or target more users.”
 
+> # 📘 Spring Boot Externalized Configuration 
+
+- **Default config file**  
+  > Spring Boot auto‑creates an `application.properties` (or `.yml`) file under `src/main/resources`. This is where you put key–value pairs for configuration.
+
+- **Externalizing configuration**  
+  > Moving hard‑coded values into property files allows you to change behavior without recompiling code.
+
+- **Property lookup in code**  
+  > Use Spring’s `@Value("${property.name}")` to inject a property’s value into a bean field.
+  > - The `${…}` syntax tells Spring to resolve the property at runtime.
+  > - This is *value injection*, analogous to dependency injection (IoC).
+
+- **Referencing one property from another**  
+  > Inside a `.properties` file you can use `${other.property}` to compose values:
+  ```properties
+  app.name=MyApp
+  app.description=Welcome to ${app.name}
+  ```
+
+- **Jar packaging caveat**
+> By default application.properties is bundled inside the fat JAR. To truly externalize, you’ll need to override or supply an external config location (covered in the next tutorial).
+
+- **💡 Example**
+> Value injection is like dependency injection Just as Spring injects a UserService bean into your class, it can inject a simple String value from your properties—same IoC principle, just with primitive values.
+
