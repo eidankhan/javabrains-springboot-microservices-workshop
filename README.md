@@ -2260,3 +2260,65 @@ public class ProdDataSourceConfig {
     }
 }
 ```
+
+> # 📘 Using Environment object
+
+- **Environment bean**  
+  > - A Spring-managed bean (`org.springframework.core.env.Environment`) you can inject into your code to _programmatically_ look up profiles and property values.  
+  > - Extends Spring’s internal `PropertyResolver`, so you get full API access to what Spring does under the hood for `${…}` placeholders.
+
+- **Profiles**  
+  > - `env.getActiveProfiles()` → `String[]` of currently active profiles.  
+  > - `env.getDefaultProfiles()` → `String[]` of default profiles.  
+  > - **Warning:** Avoid driving business logic off profiles—hard to test. Use `@Profile`‑annotated beans instead.
+
+- **Property lookup**  
+  > - `env.getProperty(String key)`  
+  > - `env.getProperty(String key, String defaultValue)`  
+  > - `env.resolvePlaceholders(String textWithPlaceholders)`  
+  > - `env.resolveRequiredPlaceholders(String textWithPlaceholders)`  
+  > - **Warning:** Prefer `@Value("${…}")` or `@ConfigurationProperties` for injection—much easier to mock/test.
+
+- **Why you might see it**  
+  > - Some codebases manually look up values or profiles via `Environment`. It exists for that—but it’s generally a last‑resort.
+
+
+## 🔧 Code/Config Snippets
+
+```java
+@RestController
+public class EnvController {
+
+    @Autowired
+    private Environment env;  // Spring’s Environment bean
+
+    @GetMapping("/envDetails")
+    public String envDetails() {
+        // Dump active/default profiles and all property sources
+        return env.toString();
+    }
+}
+````
+
+* **Sample `env.toString()` output**
+
+  ```
+  StandardEnvironment {activeProfiles=[test],
+                       defaultProfiles=[default],
+                       propertySources=[servletConfigInitParams,…,
+                                        classpath://application-test.properties,
+                                        classpath://application-doc.properties,…]}
+  ```
+
+```java
+// Examples of Environment API:
+String[] profiles = env.getActiveProfiles();
+String port     = env.getProperty("server.port", "8080");
+String url      = env.resolvePlaceholders("${app.baseUrl}/api");
+```
+
+> **Best Practices Reminder**
+>
+> * Use `@Value("${…}")` or `@ConfigurationProperties` for values.
+> * Use `@Profile` on beans to vary behavior per environment.
+> * Only reach for `Environment`‑lookup when you truly must.
