@@ -1866,3 +1866,81 @@ java -jar spring-boot-config-1.0.0-SNAPSHOT.jar \
 java -Dmy.rating="hello world from system property" \
      -jar spring-boot-config-1.0.0-SNAPSHOT.jar
 ```
+
+## 📘 Three Value annotation tricks you should know
+1. **`@Value` Annotation Basics**  
+   > - Used to inject externalized configuration (from `.properties`, environment variables, command‑line args, config server, etc.) into Spring beans.  
+   > - Syntax: `@Value("${property.key}")` injects the property as a `String`.  
+   > - Without `${}`, `@Value("literal")` injects a hard‑coded literal string.
+
+2. **Injection Severity**  
+   > - Missing property → container startup failure (treated like a missing `@Autowired` bean).  
+   > - To prevent failure, supply a default:  
+     ```java
+     @Value("${property.key:defaultValue}")
+     private String value;
+     ```
+
+3. **Injecting Collections**  
+   > - **Lists**: A comma‑separated property is auto‑split into a `List<String>` if the target field is a `List<>`.  
+   > - **Maps**: A flattened `key1:val1,key2:val2` property can be injected as a `Map<String,String>` by using Spring Expression Language (SpEL).
+
+4. **SpEL for Advanced Injection**  
+   > - Prefix with `#{…}` to treat the placeholder as a SpEL expression rather than a raw string.  
+     ```java
+     @Value("#{${map.property}}")
+     private Map<String,String> mapValues;
+     ```
+
+## 🔧 Code/Config Snippets
+
+### 1. Simple Literal vs. Property Injection
+```java
+// Literal injection (not externalized — generally not recommended)
+@Value("some static message")
+private String staticMsg;
+
+// Property injection from application.properties
+@Value("${my.app.greeting}")
+private String greeting;
+````
+
+`application.properties`:
+
+```properties
+my.app.greeting=Hello, World!
+```
+
+### 2. Providing a Default Value
+
+```java
+// If 'my.app.greeting' is missing, fallback to "Hi there!"
+@Value("${my.app.greeting:Hi there!}")
+private String greeting;
+```
+
+### 3. Injecting a List
+
+```properties
+# In application.properties
+my.list.values=1,2,3,4
+```
+
+```java
+// Spring auto‑splits comma‑separated string into List<String>
+@Value("${my.list.values}")
+private List<String> values;
+```
+
+### 4. Injecting a Map via SpEL
+
+```properties
+# Flattened key:value pairs in properties file
+db.config=host:localhost,port:5432,user:app,pass:secret
+```
+
+```java
+// Use SpEL to parse into a Map<String,String>
+@Value("#{${db.config}}")
+private Map<String,String> dbConfig;
+```
