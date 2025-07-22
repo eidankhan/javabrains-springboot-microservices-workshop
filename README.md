@@ -2070,6 +2070,90 @@ GET http://localhost:8080/actuator/configprops
 * Lists all `@ConfigurationProperties` beans and their current values (including Spring Boot’s own).
 * Handy for exploring available configuration keys and verifying overrides.
 
+# 📘 Spring Boot Configuration with YAML
 
-# Enable Actuator “configprops” endpoint (dev only)
-management.endpoints.web.exposure.include=*
+- **YAML Overview**  
+  > - Originally stood for “Yet Another Markup Language,” later rebranded to “YAML Ain’t Markup Language.”  
+  > - A human-readable data‐serialization format ideal for configuration.  
+
+- **Switching from `.properties` to `.yml`**  
+  > - Rename `application.properties` → `application.yml`.  
+  > - Change syntax from `key=value` to `key: value`.  
+
+- **Built‑in Data Types**  
+   - Unquoted values are parsed by type:  
+    > - Strings (default)  
+    > - Integers, booleans, etc.  
+    - Quotes required if the value contains special characters (e.g. `*`, `:`).  
+
+- **Nesting (Hierarchical Keys)**  
+  > - Eliminate repetitive prefixes by grouping under a parent key:  
+    ```yaml
+    parent:
+      child1: value
+      child2: value
+    ```  
+  > - Spring Boot still recognizes flattened form (`parent.child1: value`), but nesting is more concise.
+
+- **Indentation Rules**  
+  > - **Spaces only** (tabs are not supported).  
+  > - Consistent number of spaces per level (e.g. 2 or 4).
+
+## 💡 Examples
+
+- **Key‐name repetition pain**  
+  > Typing long prefixes like `management.endpoints.web.exposure.include` over and over is tedious—YAML nesting removes that boilerplate.
+  
+- **Properties vs. YAML**  
+  > Converting `application.properties` to `application.yml` is like refactoring spaghetti into a clean, indented outline.
+  
+## 🔧 Code/Config Snippets
+
+### 1. Original `application.properties`  
+```properties
+app.name=MyApp
+app.description=Demo application
+db.host=localhost
+db.port=3306
+management.endpoints.web.exposure.include=health,info
+````
+
+### 2. Basic `application.yml` (flat form)
+
+```yaml
+app.name: MyApp
+app.description: Demo application
+db.host: localhost
+db.port: 3306
+management.endpoints.web.exposure.include: health,info
+```
+
+### 3. Quoting Special Values
+
+```yaml
+some.key: "*"        # quotes required for literal asterisk
+another.key: "foo:bar"  # quotes to prevent colon parsing
+```
+
+### 4. Nested Form for Conciseness
+
+```yaml
+app:
+  name: MyApp
+  description: Demo application
+
+db:
+  host: localhost
+  port: 3306
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 
+          - health
+          - info
+```
+
+> **Note:** Spring Boot supports both flattened (`management.endpoints.web.exposure.include: health`) and nested forms.
+
