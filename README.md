@@ -1812,3 +1812,57 @@ public Movie getMovieInfo(String movieId) {
 - **💡 Example**
 > Value injection is like dependency injection Just as Spring injects a UserService bean into your class, it can inject a simple String value from your properties—same IoC principle, just with primitive values.
 
+> # 📘 Spring Boot Externalized Configuration Overrides
+
+- **Default configuration location**  
+  > Properties placed in `src/main/resources/application.properties` are packaged **inside** the JAR by default.
+
+- **External configuration override**  
+  > If you put an `application.properties` file **next to** the JAR on the filesystem, Spring Boot will detect it **after** reading the embedded one and override any matching properties.
+
+- **Command‑line arguments override**  
+  > Passing `--property.name=value` when running `java -jar` takes priority over both embedded and external property files.
+
+- **JVM system properties override**  
+  > JVM system properties (`-Dproperty.name=value`) – common on platforms like Heroku – are also picked up and can override earlier sources.
+
+- **Order of precedence**  
+  > 1. **Embedded** `application.properties` inside the JAR  
+  > 2. **External** `application.properties` in the same directory as the JAR  
+  > 3. **Command‑line arguments** (`--key=value`)  
+  > 4. **JVM system properties** (`-Dkey=value`)
+
+## 🔧 Code/Config Snippets
+
+### 1. Run JAR with embedded config only
+
+```bash
+java -jar spring-boot-config-1.0.0-SNAPSHOT.jar
+
+# src/main/resources/application.properties (inside JAR)
+my.rating=hello world
+server.port=8080
+```
+### 2. Override using external application.properties alongside JAR
+
+```bash
+# In the same folder as the JAR, create:
+echo "my.rating=hello world from external file" > application.properties
+
+# Then run:
+java -jar spring-boot-config-1.0.0-SNAPSHOT.jar
+```
+
+### 3. Override via command-line argument
+
+```bash
+java -jar spring-boot-config-1.0.0-SNAPSHOT.jar \
+  --my.rating="hello world from command-line argument"
+```
+
+### 4. Override via JVM system property
+
+```bash
+java -Dmy.rating="hello world from system property" \
+     -jar spring-boot-config-1.0.0-SNAPSHOT.jar
+```
